@@ -2,17 +2,16 @@
 # This runs when stage branch receives changes (e.g., PR merged to stage). Builds image and deploys to Elastic Beanstalk.
 #############################
 
+
 name: Stage — Branch 'stage' → Elastic Beanstalk
 
 on:
   push:
     branches:
-      - 'stage'
+      - "stage"
 
 env:
   REGION: ap-southeast-1
-  ECR_REGISTRY: ${{ secrets.ECR_REGISTRY }}
-  ECR_REPO: ${{ secrets.ECR_REPO }}
   IMAGE: ${{ secrets.ECR_REGISTRY }}/${{ secrets.ECR_REPO }}
 
 jobs:
@@ -20,55 +19,47 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-      - name: Configure AWS Credentials
-        uses: aws-actions/configure-aws-credentials@v2
+      - uses: aws-actions/configure-aws-credentials@v2
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{ secrets.AWS_REGION }}
 
-      - name: Login to ECR
-        uses: aws-actions/amazon-ecr-login@v2
+      - uses: aws-actions/amazon-ecr-login@v2
 
-      - name: Build and push Docker image to ECR
+      - name: Build and push image
         uses: docker/build-push-action@v4
         with:
           context: ./go-app
           push: true
           tags: |
             ${{ env.IMAGE }}:stage-${{ github.run_id }}
-            ${{ env.IMAGE }}:latest
 
-      - name: Prepare Dockerrun for EB (single container)
+      - name: Create Dockerrun.aws.json
         run: |
-          cat > beanstalk/Dockerrun.aws.json <<'EOF'
-          {
+          echo '{
             "AWSEBDockerrunVersion": 1,
             "Image": {
-              "Name": "${IMAGE}:stage-${GITHUB_RUN_ID}",
+              "Name": "'"${IMAGE}:stage-${GITHUB_RUN_ID}"'",
               "Update": "true"
             },
             "Ports": [
-              {"ContainerPort": "8080"}
+              { "ContainerPort": "8080" }
             ]
-          }
-          EOF
+          }' > beanstalk/Dockerrun.aws.json
         env:
           IMAGE: ${{ env.IMAGE }}
-          GITHUB_RUN_ID: ${{ github.run_id }}
 
       - name: Deploy to Elastic Beanstalk
-        uses: einaregilsson/beanstalk-deploy@v20  # The action will zip beanstalk folder contents
+        uses: einaregilsson/beanstalk-deploy@v20
         with:
           aws_access_key: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws_secret_key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          region: ${{ secrets.AWS_REGION }}
           application_name: ${{ secrets.EB_APP_NAME }}
           environment_name: ${{ secrets.EB_ENV_NAME }}
-          region: ${{ secrets.AWS_REGION }}
           version_label: stage-${{ github.run_id }}
-          bucket_name: eb-deploy-artifacts-${{ secrets.AWS_REGION }}-${{ github.repository_owner }}
+          bucket_name: eb-artifacts-${{ secrets.AWS_REGION }}-${{ github.repository_owner }}
           bucket_key: stage-${{ github.run_id }}.zip
-         

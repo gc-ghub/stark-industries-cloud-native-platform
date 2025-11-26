@@ -3,50 +3,25 @@
 #Spins up a temporary Kind cluster using an action, deploys Helm chart into it for quick dev validation.
 ##############################################
 
+
 name: Dev — Feature → Kind
 
 on:
   push:
     branches:
-      - 'feature/**'
-
-env:
-  REGION: ap-southeast-1
-  ECR_REGISTRY: ${{ secrets.ECR_REGISTRY }}
-  ECR_REPO: ${{ secrets.ECR_REPO }}
-  IMAGE: ${{ secrets.ECR_REGISTRY }}/${{ secrets.ECR_REPO }}
+      - "feature/**"
 
 jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
-    permissions:
-      contents: read
-      id-token: write
 
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
-
-      - name: Login to ECR
-        uses: aws-actions/amazon-ecr-login@v2
-        with:
-          registry-type: 'public' # optional for public; for private omit or set default
-        env:
-          AWS_REGION: ${{ secrets.AWS_REGION }}
-          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-
-      - name: Build and push image to ECR (dev-<sha>)
-        uses: docker/build-push-action@v4
-        with:
-          context: ./go-app
-          push: true
-          tags: |
-            ${{ env.IMAGE }}:${{ github.sha }}
-            ${{ env.IMAGE }}:feature-${{ github.run_id }}
+      - name: Build local Docker image
+        run: |
+          docker build -t stark-dev:${{ github.sha }} ./go-app
 
       - name: Set up kind cluster
         uses: engineerd/setup-kind@v0.6.0
@@ -55,30 +30,20 @@ jobs:
 
       - name: Load image into kind
         run: |
-          kind load docker-image ${{ env.IMAGE }}:${{ github.sha }}
+          kind load docker-image stark-dev:${{ github.sha }}
 
       - name: Set up kubectl
         uses: azure/setup-kubectl@v3
-        with:
-          version: 'latest'
 
-      - name: Deploy Helm chart to kind (dev namespace)
-        env:
-          IMAGE_TAG: ${{ github.sha }}
+      - name: Deploy Helm chart to Kind (dev)
         run: |
-          kubectl create namespace dev || true
+          kubectl create ns dev || true
           helm upgrade --install stark-dev ./helm/stark-industries-go \
             --namespace dev \
-            --set image.repository=${{ env.IMAGE }} \
+            --set image.repository=stark-dev \
             --set image.tag=${{ github.sha }} \
             --wait
 
-      - name: Run smoke test
+      - name: Smoke test
         run: |
-          kubectl -n dev rollout status deploy/stark-dev-stark-industries-go --timeout=120s || kubectl -n dev get pods -o wide
-
-      - name: Tear down (optional) — keep for debugging
-        if: ${{ always() && github.event_name != 'workflow_dispatch' }}
-        run: |
-          # Remove cluster to save runner resources
-          kind delete cluster || true
+          kubectl -n dev rollout status deploy/stark-dev-stark-industries-go --timeout=120s || true
