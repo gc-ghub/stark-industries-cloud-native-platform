@@ -1,0 +1,66 @@
+##################################
+#Triggered on push to main. 
+#Builds image, pushes to ECR, updates the Helm chart values.yaml (image.tag) in the repo and commits the change. 
+#ArgoCD watches the repo and will sync to EKS automatically (GitOps).
+####################################
+
+name: Prod — Main → Build → Update Helm values → ArgoCD
+
+on:
+  push:
+    branches:
+      - 'main'
+
+env:
+  REGION: ap-southeast-1
+  ECR_REGISTRY: ${{ secrets.ECR_REGISTRY }}
+  ECR_REPO: ${{ secrets.ECR_REPO }}
+  IMAGE: ${{ secrets.ECR_REGISTRY }}/${{ secrets.ECR_REPO }}
+
+jobs:
+  build-and-update-helm:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: true
+
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_REGION }}
+
+      - name: Login to ECR
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - name: Build and push image to ECR
+        uses: docker/build-push-action@v4
+        with:
+          context: ./go-app
+          push: true
+          tags: |
+            ${{ env.IMAGE }}:prod-${{ github.sha }}
+            ${{ env.IMAGE }}:latest
+
+      - name: Update Helm values.image.tag
+        id: update_values
+        run: |
+          IMAGE_TAG=prod-${GITHUB_SHA}
+          cd helm/stark-industries-go
+          # update values.yaml image.tag
+          yq eval -i ".image.tag = \"${IMAGE_TAG}\"" values.yaml
+          git add values.yaml
+          git config user.email "${{ secrets.USER_EMAIL }}"
+          git config user.name "${{ secrets.USER_NAME }}"
+          git commit -m "chore: bump helm image.tag to ${IMAGE_TAG} [ci skip]" || echo "no changes to commit"
+          git push origin HEAD:main
+        env:
+          GITHUB_SHA: ${{ github.sha }}
+
+      - name: Notify ArgoCD (optional)
+        run: |
+          echo "ArgoCD will pick up the change automatically if configured."
