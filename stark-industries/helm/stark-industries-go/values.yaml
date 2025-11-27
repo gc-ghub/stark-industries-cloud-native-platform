@@ -15,11 +15,16 @@ ingress:
   className: "nginx"
   annotations:
     kubernetes.io/ingress.class: nginx
-  hosts:
-    - host: ""
-      paths:
-        - path: /
-          pathType: Prefix
+
+  # NEW: environment-safe host override
+  host: ""     # prod will use root domain (LB)
+               # dev override: dev.stark.local
+               # stage override: stage.stark.local
+
+  paths:
+    - path: /
+      pathType: Prefix
+
   tls: []
 
 resources: {}
