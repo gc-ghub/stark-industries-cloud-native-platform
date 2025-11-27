@@ -6,28 +6,28 @@ import (
 	"os"
 )
 
-// Main application handler for /
 func handler(w http.ResponseWriter, r *http.Request) {
 	version := os.Getenv("APP_VERSION")
 	if version == "" {
 		version = "v1"
 	}
-	fmt.Fprintf(w, "<h1>Stark Industries App (%s)</h1><p>Serving from Go app</p>", version)
+
+	fmt.Fprintf(w, `
+        <h1 style="color:#c0392b; font-family:Arial; text-shadow:1px 1px #000;">
+            🚀 Stark Industries App (%s)
+        </h1>
+        <p style="font-size:20px;">This is a CI/CD + GitOps auto-deployed version.</p>
+        <p>Deployed via GitHub Actions → ECR → ArgoCD → EKS</p>
+    `, version)
 }
 
-// NEW — simple health endpoint for probes
 func healthHandler(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
 	w.Write([]byte("ok"))
 }
 
 func main() {
-	// Main route
 	http.HandleFunc("/", handler)
-
-	// Health route — used by K8s probes
 	http.HandleFunc("/healthz", healthHandler)
-
-	// Start HTTP server
 	http.ListenAndServe(":8080", nil)
 }
