@@ -8,19 +8,20 @@ import (
 )
 
 func handler(w http.ResponseWriter, r *http.Request) {
-	// Canary version
-	version := "v2-canary"
+	version := os.Getenv("APP_VERSION")
+	if version == "" {
+		version = "v2-canary"
+	}
 
 	hostname, _ := os.Hostname()
 	timestamp := time.Now().Format("Jan 2, 2006 15:04:05")
 
-	// *** IMPORTANT *** → Exactly 3 %s placeholders
 	html := fmt.Sprintf(`
 	<!DOCTYPE html>
 	<html lang="en">
 	<head>
 	<meta charset="UTF-8" />
-	<title>Stark Industries — Canary</title>
+	<title>Stark Industries — Canary Release</title>
 	<style>
 		body {
 			margin: 0;
@@ -30,8 +31,9 @@ func handler(w http.ResponseWriter, r *http.Request) {
 			text-align: center;
 			padding: 40px;
 		}
+
 		.card {
-			background: rgba(255,255,255,0.08);
+			background: rgba(255, 255, 255, 0.08);
 			padding: 40px;
 			margin: auto;
 			max-width: 700px;
@@ -39,23 +41,20 @@ func handler(w http.ResponseWriter, r *http.Request) {
 			box-shadow: 0 8px 25px rgba(0,0,0,0.3);
 			backdrop-filter: blur(10px);
 		}
+
 		h1 {
-			font-size: 42px;
-			margin-bottom: 15px;
+			font-size: 44px;
+			margin-bottom: 10px;
 		}
+
 		.version-badge {
 			display: inline-block;
-			background: #3399ff;
-			padding: 8px 18px;
+			background: #4da3ff;
+			padding: 6px 14px;
 			border-radius: 12px;
-			font-size: 18px;
+			font-size: 16px;
+			margin-bottom: 15px;
 			font-weight: bold;
-			margin-bottom: 22px;
-		}
-		.footer {
-			margin-top: 30px;
-			font-size: 14px;
-			opacity: 0.85;
 		}
 	</style>
 	</head>
@@ -66,7 +65,7 @@ func handler(w http.ResponseWriter, r *http.Request) {
 
 			<div class="version-badge">Version: %s</div>
 
-			<p>This is <strong>v2 Canary</strong>, deployed via Istio traffic splitting.</p>
+			<p>This is <strong>v2 Canary</strong>, served using Istio traffic splitting.</p>
 
 			<h3>📦 Pod Information</h3>
 			<p><strong>Pod Name:</strong> %s</p>
@@ -74,9 +73,7 @@ func handler(w http.ResponseWriter, r *http.Request) {
 			<h3>⏱ Deployed At</h3>
 			<p>%s</p>
 
-			<div class="footer">
-				Canary Deployment • Istio • ArgoCD • GitHub Actions • EKS
-			</div>
+			<p style="margin-top:20px;">Canary Deployment via Istio • ArgoCD • EKS • GitHub Actions</p>
 		</div>
 	</body>
 	</html>
