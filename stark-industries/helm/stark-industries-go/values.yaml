@@ -2,7 +2,7 @@ replicaCount: 2
 
 image:
   repository: 305870069247.dkr.ecr.ap-southeast-1.amazonaws.com/stark-industries-go-web-app
-  tag: "00d38078168c0bb78a41554389772b8041a85f55"
+  tag: "4474a45b96df4446db17ab69a13659fcdc227c7b"
   pullPolicy: IfNotPresent
 
 service:
