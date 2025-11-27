@@ -5,13 +5,16 @@ metadata:
   namespace: argocd
 spec:
   project: default
+
   source:
-    repoURL: 'https://github.com/gc-ghub/stark-industries-cloud-native-platform.git'
+    repoURL: https://github.com/gc-ghub/stark-industries-cloud-native-platform.git
     targetRevision: main
     path: stark-industries/helm/stark-industries-go
+
   destination:
-    server: 'https://kubernetes.default.svc'
+    server: https://kubernetes.default.svc
     namespace: default
+
   syncPolicy:
     automated:
       prune: true

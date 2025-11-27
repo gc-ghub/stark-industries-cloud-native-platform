@@ -36,7 +36,7 @@ jobs:
       - name: Build + push ECR image
         uses: docker/build-push-action@v4
         with:
-          context: ./go-app
+          context: ./stark-industries/go-app
           push: true
           tags: |
             ${{ env.IMAGE }}:prod-${{ github.sha }}
