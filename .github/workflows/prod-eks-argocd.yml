@@ -1,4 +1,4 @@
-##################################
+######################################
 #Triggered on push to main. 
 #Builds image, pushes to ECR, updates the Helm chart values.yaml (image.tag) in the repo and commits the change. 
 #ArgoCD watches the repo and will sync to EKS automatically (GitOps).
