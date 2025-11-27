@@ -13,6 +13,7 @@ spec:
     metadata:
       labels:
         app: {{ include "stark-industries-go.name" . }}
+        istio-injection: enabled
     spec:
       containers:
         - name: {{ include "stark-industries-go.name" . }}
