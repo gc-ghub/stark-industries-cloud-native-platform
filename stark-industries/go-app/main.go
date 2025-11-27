@@ -8,43 +8,47 @@ import (
 )
 
 func handler(w http.ResponseWriter, r *http.Request) {
+
+	// Force v2 unless APP_VERSION is explicitly provided
 	version := os.Getenv("APP_VERSION")
 	if version == "" {
-		version = "v1"
+		version = "v2"
 	}
 
 	hostname, _ := os.Hostname()
 	timestamp := time.Now().Format("Jan 2, 2006 15:04:05")
 
+	// HTML for Canary v2
 	html := fmt.Sprintf(`
 	<!DOCTYPE html>
 	<html lang="en">
 	<head>
 	<meta charset="UTF-8" />
-	<title>Stark Industries App</title>
+	<title>Stark Industries App — v2 Canary</title>
 	<style>
 		body {
 			margin: 0;
 			font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-			background: linear-gradient(135deg, #0f2027, #203a43, #2c5364);
+			background: linear-gradient(135deg, #1a2a3a, #25354a, #345b74);
 			color: #fff;
 			text-align: center;
 			padding: 40px;
 		}
 
 		.card {
-			background: rgba(255, 255, 255, 0.08);
+			background: rgba(255, 255, 255, 0.10);
 			padding: 40px;
 			margin: auto;
 			max-width: 700px;
 			border-radius: 18px;
 			box-shadow: 0 8px 25px rgba(0,0,0,0.3);
 			backdrop-filter: blur(10px);
-			transition: transform 0.3s ease;
+			animation: fadeIn 1s ease-in-out;
 		}
 
-		.card:hover {
-			transform: scale(1.02);
+		@keyframes fadeIn {
+			from { opacity: 0; transform: translateY(20px); }
+			to { opacity: 1; transform: translateY(0); }
 		}
 
 		h1 {
@@ -54,12 +58,19 @@ func handler(w http.ResponseWriter, r *http.Request) {
 
 		.version-badge {
 			display: inline-block;
-			background: #ff6b6b;
+			background: #3399ff;
 			padding: 6px 14px;
 			border-radius: 12px;
 			font-size: 16px;
 			margin-bottom: 15px;
 			font-weight: bold;
+			animation: pulse 1.8s infinite;
+		}
+
+		@keyframes pulse {
+			0% { transform: scale(1); }
+			50% { transform: scale(1.08); }
+			100% { transform: scale(1); }
 		}
 
 		.footer {
@@ -68,24 +79,16 @@ func handler(w http.ResponseWriter, r *http.Request) {
 			opacity: 0.8;
 		}
 
-		a {
-			color: #00eaff;
-			text-decoration: none;
-		}
-
-		a:hover {
-			text-decoration: underline;
-		}
 	</style>
 	</head>
 
 	<body>
 		<div class="card">
-			<h1>🚀 Stark Industries Dashboard</h1>
+			<h1>🟦 Stark Industries — Canary Release</h1>
 
 			<div class="version-badge">Version: %s</div>
 
-			<p>This app is auto-deployed using <strong>GitHub Actions → ECR → ArgoCD → EKS</strong></p>
+			<p>This is <strong>v2 Canary</strong>, served using Istio traffic splitting.</p>
 
 			<br />
 
@@ -96,7 +99,7 @@ func handler(w http.ResponseWriter, r *http.Request) {
 			<p>%s</p>
 
 			<div class="footer">
-				Made with ❤️ using GoLang, Kubernetes, and GitOps
+				Canary Deployment via Istio • ArgoCD • EKS • GitHub Actions
 			</div>
 		</div>
 	</body>

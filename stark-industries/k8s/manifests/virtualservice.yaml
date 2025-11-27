@@ -1,0 +1,19 @@
+apiVersion: networking.istio.io/v1beta1
+kind: VirtualService
+metadata:
+  name: stark-industries-vs
+spec:
+  hosts:
+  - "*"
+  gateways:
+  - stark-industries-gateway
+  http:
+  - route:
+    - destination:
+        host: stark-industries-go
+        subset: v1
+      weight: 90
+    - destination:
+        host: stark-industries-go
+        subset: v2
+      weight: 10

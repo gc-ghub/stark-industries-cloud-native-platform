@@ -1,0 +1,25 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: stark-industries-go-v2
+  labels:
+    app: stark-industries-go
+    version: v2
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: stark-industries-go
+      version: v2
+  template:
+    metadata:
+      labels:
+        app: stark-industries-go
+        version: v2
+        istio-injection: enabled
+    spec:
+      containers:
+      - name: stark-industries-go
+        image: 305870069247.dkr.ecr.ap-southeast-1.amazonaws.com/stark-industries-go-web-app:v2
+        ports:
+        - containerPort: 8080
