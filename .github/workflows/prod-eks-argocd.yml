@@ -5,52 +5,55 @@
 ####################################
 
 
-name: Prod — Main → Build → Update Helm → ArgoCD
+name: Build & Deploy to EKS via ArgoCD
 
 on:
   push:
-    branches:
-      - "main"
+    branches: [ "main" ]
 
 env:
-  REGION: ap-southeast-1
-  IMAGE: ${{ secrets.ECR_REGISTRY }}/${{ secrets.ECR_REPO }}
+  AWS_REGION: ${{ secrets.AWS_REGION }}
+  ECR_REGISTRY: ${{ secrets.ECR_REGISTRY }}
+  ECR_REPO: ${{ secrets.ECR_REPO }}
 
 jobs:
-  build-and-update-helm:
+  build-and-deploy:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v4
-        with:
-          persist-credentials: true
+    - name: Checkout code
+      uses: actions/checkout@v4
 
-      - uses: aws-actions/configure-aws-credentials@v2
-        with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: ${{ secrets.AWS_REGION }}
+    - name: Configure AWS credentials
+      uses: aws-actions/configure-aws-credentials@v4
+      with:
+        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        aws-region: ${{ env.AWS_REGION }}
 
-      - uses: aws-actions/amazon-ecr-login@v2
+    - name: Login to Amazon ECR
+      uses: aws-actions/amazon-ecr-login@v2
 
-      - name: Build + push ECR image
-        uses: docker/build-push-action@v4
-        with:
-          context: ./stark-industries/go-app
-          push: true
-          tags: |
-            ${{ env.IMAGE }}:prod-${{ github.sha }}
-            ${{ env.IMAGE }}:latest
+    - name: Build Docker image
+      run: |
+        IMAGE_TAG=${GITHUB_SHA}
+        docker build -t $ECR_REGISTRY/$ECR_REPO:$IMAGE_TAG ./stark-industries/go-app
+        docker tag $ECR_REGISTRY/$ECR_REPO:$IMAGE_TAG $ECR_REGISTRY/$ECR_REPO:latest
+        echo "IMAGE_TAG=$IMAGE_TAG" >> $GITHUB_ENV
 
-      - name: Install yq
-        run: sudo snap install yq
+    - name: Push Docker image
+      run: |
+        docker push $ECR_REGISTRY/$ECR_REPO:${IMAGE_TAG}
+        docker push $ECR_REGISTRY/$ECR_REPO:latest
 
-      - name: Update Helm image.tag
-        run: |
-          cd helm/stark-industries-go
-          yq eval -i ".image.tag = \"prod-${GITHUB_SHA}\"" values.yaml
-          git config user.email "${{ secrets.USER_EMAIL }}"
-          git config user.name "${{ secrets.USER_NAME }}"
-          git add values.yaml
-          git commit -m "chore: update image tag to prod-${GITHUB_SHA}" || echo "No change"
-          git push
+    - name: Update Helm values.yaml with new image tag
+      run: |
+        sed -i "s/tag: .*/tag: \"${IMAGE_TAG}\"/" stark-industries/go-app/helm/stark-industries-go/values.yaml
+
+    - name: Commit tag update
+      run: |
+        git config --global user.name "${{ secrets.USER_NAME }}"
+        git config --global user.email "${{ secrets.USER_EMAIL }}"
+        git add .
+        git commit -m "update image tag to ${IMAGE_TAG}" || echo "No changes to commit"
+        git push origin main

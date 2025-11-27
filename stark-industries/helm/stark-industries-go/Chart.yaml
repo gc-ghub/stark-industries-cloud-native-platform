@@ -1,6 +1,12 @@
 apiVersion: v2
 name: stark-industries-go
-description: A Helm chart for deploying Stark Industries Go web app
+description: A Helm chart for deploying the Stark Industries Go web app
 type: application
 version: 0.1.0
-appVersion: "v1"
+appVersion: "1.0.0"
+keywords:
+  - stark
+  - industries
+  - go
+  - web
+  - app

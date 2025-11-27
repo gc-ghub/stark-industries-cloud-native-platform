@@ -2,7 +2,7 @@ replicaCount: 2
 
 image:
   repository: 305870069247.dkr.ecr.ap-southeast-1.amazonaws.com/stark-industries-go-web-app
-  tag: v1
+  tag: "v1"        # This will be replaced automatically by GitHub Actions → ArgoCD deploys
   pullPolicy: IfNotPresent
 
 service:
@@ -16,10 +16,8 @@ ingress:
   annotations:
     kubernetes.io/ingress.class: nginx
 
-  # NEW: environment-safe host override
-  host: ""     # prod will use root domain (LB)
-               # dev override: dev.stark.local
-               # stage override: stage.stark.local
+  # ArgoCD will not modify this. You can override for multi-env in future using values files.
+  host: ""    
 
   paths:
     - path: /
