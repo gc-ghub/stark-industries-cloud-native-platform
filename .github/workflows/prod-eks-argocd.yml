@@ -48,7 +48,7 @@ jobs:
 
     - name: Update Helm values.yaml with new image tag
       run: |
-        sed -i "s/tag: .*/tag: \"${IMAGE_TAG}\"/" stark-industries/go-app/helm/stark-industries-go/values.yaml
+        sed -i "s/tag: .*/tag: \"${IMAGE_TAG}\"/" stark-industries/helm/stark-industries-go/values.yaml
 
     - name: Commit tag update
       run: |
