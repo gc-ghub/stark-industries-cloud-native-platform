@@ -96,7 +96,7 @@ func handler(w http.ResponseWriter, r *http.Request) {
 			<p>%s</p>
 
 			<div class="footer">
-				We build and ship War Machines 🤖 
+				We build and ship War Machines 🤖 and Tony Stark approves this deployment! ⚡
 			</div>
 		</div>
 	</body>
