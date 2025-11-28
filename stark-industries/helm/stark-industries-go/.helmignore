@@ -1,3 +1,4 @@
+# NOTE: .helmignore files are plain text (glob patterns) not YAML — treat as plaintext.
 # Patterns to ignore when building packages.
 # This supports shell glob matching, relative path matching, and
 # negation (prefixed with !). Only one pattern per line.
@@ -21,3 +22,22 @@
 .idea/
 *.tmproj
 .vscode/
+node_modules/
+package-lock.json
+yarn.lock
+pnpm-lock.yaml
+npm-debug.log
+
+# Helm packaging artifacts
+*.tgz
+*.tar.gz
+charts/
+
+# Temporary / test directories
+README.md
+tests/
+test/
+
+# Docker artifacts
+Dockerfile
+docker-compose.yml

@@ -1,3 +1,65 @@
-istio-*/
+# --- OS / Editor artifacts ---
+.DS_Store
+Thumbs.db
+desktop.ini
+ehthumbs.db
+Icon\r
+
+# Temporary / backups
+*.swp
+*.swx
+*.tmp
+*.bak
+*.orig
+*~
+
+# --- Platform: Windows (OneDrive/Thumbs) ---
+~$*
+.~lock.*
+
+# --- Go build / tool artifacts ---
+# Binaries and build outputs
+bin/
+build/
+out/
+dist/
+*_output/
+*.test
+coverage.out
+
+# Build artifacts from the go app (common names)
+go-app/stark-industries
+go-app/stark-industries.exe
+
+# Dependency management / vendored code (if you commit vendor/, remove this)
+vendor/
+Gopkg.lock
+Gopkg.toml
+
+# --- Helm / Charts / packaging ---
+# Chart packages and archives
+*.tgz
 *.tar.gz
-*.zip
+charts/
+
+# --- Containers / Docker ---
+docker-compose.override.yml
+.docker/
+
+# --- Kubernetes generated files / manifests ---
+*.yaml.tpl
+*.yaml.generated
+
+# --- IDEs and editors ---
+.vscode/
+.idea/
+*.iml
+.project
+
+# --- Logs ---
+*.log
+
+# --- Secrets / environment ---
+.env
+.env.*
+secrets/
