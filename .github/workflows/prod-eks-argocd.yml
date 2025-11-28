@@ -1,11 +1,4 @@
-######################################
-#Triggered on push to main. 
-#Builds image, pushes to ECR, updates the Helm chart values.yaml (image.tag) in the repo and commits the change. 
-#ArgoCD watches the repo and will sync to EKS automatically (GitOps).
-####################################
-
-
-name: Build & Deploy to EKS via ArgoCD
+name: Build & Deploy Multi-Version App to EKS via ArgoCD
 
 on:
   push:
@@ -14,7 +7,8 @@ on:
 env:
   AWS_REGION: ${{ secrets.AWS_REGION }}
   ECR_REGISTRY: ${{ secrets.ECR_REGISTRY }}
-  ECR_REPO: ${{ secrets.ECR_REPO }}
+  ECR_REPO_V1: stark-industries-go-v1
+  ECR_REPO_V2: stark-industries-go-v2
 
 jobs:
   build-and-deploy:
@@ -34,26 +28,47 @@ jobs:
     - name: Login to Amazon ECR
       uses: aws-actions/amazon-ecr-login@v2
 
-    - name: Build Docker image
+    ###########################################################
+    # BUILD V1 (go-app)
+    ###########################################################
+    - name: Build v1 Docker image
       run: |
-        IMAGE_TAG=${GITHUB_SHA}
-        docker build -t $ECR_REGISTRY/$ECR_REPO:$IMAGE_TAG ./stark-industries/go-app
-        docker tag $ECR_REGISTRY/$ECR_REPO:$IMAGE_TAG $ECR_REGISTRY/$ECR_REPO:latest
-        echo "IMAGE_TAG=$IMAGE_TAG" >> $GITHUB_ENV
+        IMAGE_TAG_V1=${GITHUB_SHA}-v1
+        docker build -t $ECR_REGISTRY/$ECR_REPO_V1:$IMAGE_TAG_V1 ./stark-industries/go-app
+        echo "IMAGE_TAG_V1=$IMAGE_TAG_V1" >> $GITHUB_ENV
 
-    - name: Push Docker image
+    - name: Push v1 Docker image
       run: |
-        docker push $ECR_REGISTRY/$ECR_REPO:${IMAGE_TAG}
-        docker push $ECR_REGISTRY/$ECR_REPO:latest
+        docker push $ECR_REGISTRY/$ECR_REPO_V1:${IMAGE_TAG_V1}
 
-    - name: Update Helm values.yaml with new image tag
+    ###########################################################
+    # BUILD V2 (go-app-v2)
+    ###########################################################
+    - name: Build v2 Docker image
       run: |
-        sed -i "s/tag: .*/tag: \"${IMAGE_TAG}\"/" stark-industries/helm/stark-industries-go/values.yaml
+        IMAGE_TAG_V2=${GITHUB_SHA}-v2
+        docker build -t $ECR_REGISTRY/$ECR_REPO_V2:$IMAGE_TAG_V2 ./stark-industries/go-app-v2
+        echo "IMAGE_TAG_V2=$IMAGE_TAG_V2" >> $GITHUB_ENV
 
-    - name: Commit tag update
+    - name: Push v2 Docker image
+      run: |
+        docker push $ECR_REGISTRY/$ECR_REPO_V2:${IMAGE_TAG_V2}
+
+    ###########################################################
+    # UPDATE HELM VALUES (ArgoCD will sync automatically)
+    ###########################################################
+    - name: Update Helm values.yaml with v1 and v2 image tags
+      run: |
+        sed -i "s|tag_v1:.*|tag_v1: \"${IMAGE_TAG_V1}\"|" stark-industries/helm/stark-industries-go/values.yaml
+        sed -i "s|tag_v2:.*|tag_v2: \"${IMAGE_TAG_V2}\"|" stark-industries/helm/stark-industries-go/values.yaml
+
+    ###########################################################
+    # COMMIT CHANGES
+    ###########################################################
+    - name: Commit version updates
       run: |
         git config --global user.name "${{ secrets.USER_NAME }}"
         git config --global user.email "${{ secrets.USER_EMAIL }}"
         git add .
-        git commit -m "update image tag to ${IMAGE_TAG}" || echo "No changes to commit"
+        git commit -m "Updated v1=${IMAGE_TAG_V1}, v2=${IMAGE_TAG_V2}" || echo "No changes to commit"
         git push origin main
