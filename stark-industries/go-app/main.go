@@ -10,7 +10,7 @@ import (
 func handler(w http.ResponseWriter, r *http.Request) {
 	version := os.Getenv("APP_VERSION")
 	if version == "" {
-		version = "v2-canary"
+		version = "v1"
 	}
 
 	hostname, _ := os.Hostname()
@@ -21,7 +21,7 @@ func handler(w http.ResponseWriter, r *http.Request) {
 	<html lang="en">
 	<head>
 	<meta charset="UTF-8" />
-	<title>Stark Industries — Canary Release</title>
+	<title>Stark Industries App</title>
 	<style>
 		body {
 			margin: 0;
@@ -40,6 +40,11 @@ func handler(w http.ResponseWriter, r *http.Request) {
 			border-radius: 18px;
 			box-shadow: 0 8px 25px rgba(0,0,0,0.3);
 			backdrop-filter: blur(10px);
+			transition: transform 0.3s ease;
+		}
+
+		.card:hover {
+			transform: scale(1.02);
 		}
 
 		h1 {
@@ -49,23 +54,40 @@ func handler(w http.ResponseWriter, r *http.Request) {
 
 		.version-badge {
 			display: inline-block;
-			background: #4da3ff;
+			background: #ff6b6b;
 			padding: 6px 14px;
 			border-radius: 12px;
 			font-size: 16px;
 			margin-bottom: 15px;
 			font-weight: bold;
 		}
+
+		.footer {
+			margin-top: 30px;
+			font-size: 14px;
+			opacity: 0.8;
+		}
+
+		a {
+			color: #00eaff;
+			text-decoration: none;
+		}
+
+		a:hover {
+			text-decoration: underline;
+		}
 	</style>
 	</head>
 
 	<body>
 		<div class="card">
-			<h1>🔷 Stark Industries — Canary Release</h1>
+			<h1>🚀 Stark Industries Dashboard</h1>
 
 			<div class="version-badge">Version: %s</div>
 
-			<p>This is <strong>v2 Canary</strong>, served using Istio traffic splitting.</p>
+			<p>This app is auto-deployed using <strong>GitHub Actions → ECR → ArgoCD → EKS</strong></p>
+
+			<br />
 
 			<h3>📦 Pod Information</h3>
 			<p><strong>Pod Name:</strong> %s</p>
@@ -73,7 +95,9 @@ func handler(w http.ResponseWriter, r *http.Request) {
 			<h3>⏱ Deployed At</h3>
 			<p>%s</p>
 
-			<p style="margin-top:20px;">Canary Deployment via Istio • ArgoCD • EKS • GitHub Actions</p>
+			<div class="footer">
+				We build and ship War Machines 🤖 
+			</div>
 		</div>
 	</body>
 	</html>
