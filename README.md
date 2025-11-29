@@ -58,6 +58,50 @@ The sample setup showcases a canary deployment where traffic can be split betwee
 
 ---
 
+## 🗺️ Architecture diagram
+
+High-level architecture (CI → image registry → GitOps → cluster). Click to expand the diagram below.
+
+<details>
+<summary>Open architecture diagram</summary>
+
+![Architecture diagram](docs/arch-diagram.svg)
+
+</details>
+
+### Mermaid (editable) diagram
+
+Below is an editable Mermaid flowchart of the architecture — useful if you want to modify the flow and re-render locally.
+
+```mermaid
+flowchart LR
+  DEV["👩‍💻 Developer: push / PR"] --> GH["⚙️ GitHub Actions: build & test"]
+  GH --> REG["📦 Container registry: ECR"]
+  GH --> GIT["📂 Git repo: update manifests/values"]
+  GIT --> ARGO["🔁 ArgoCD: GitOps sync -> cluster"]
+  ARGO --> CLUSTER["☸️ EKS Cluster: Deployments, Istio, Kiali"]
+  CLUSTER --> APPS["🧩 Apps (v1 / v2)"]
+```
+
+Note: If you'd like a PNG exported and added to the repo I can generate one — currently this environment doesn't have a native rasterizer installed (Cairo/ImageMagick). I included instructions below showing how to generate a PNG from the SVG locally.
+
+#### Export SVG -> PNG (local)
+
+If you have Python + cairosvg installed locally:
+
+```powershell
+python -m pip install cairosvg
+python -c "from cairosvg import svg2png; svg2png(url='docs/arch-diagram.svg', write_to='docs/arch-diagram.png', output_width=2400)"
+```
+
+Or with ImageMagick (if available):
+
+```powershell
+magick convert docs/arch-diagram.svg docs/arch-diagram.png
+```
+
+---
+
 ## What's included
 
 - `stark-industries/go-app/` — v1 Stark web app
@@ -199,8 +243,7 @@ Below are screenshots included in the `pictures/` directory with short descripti
 
 ### ArgoCD / GitOps
 
-<details>
-<summary><strong>ArgoCD screenshots — click to expand</strong></summary>
+The screenshots below show ArgoCD in action — application list, diffs, resource tree, sync history and logs.
 
 ![ArgoCD — Applications view](pictures/argocd-1.png)
 *Applications list & sync status.*
@@ -226,12 +269,7 @@ Below are screenshots included in the `pictures/` directory with short descripti
 ![ArgoCD — Logs / resource detail](pictures/argocd-8.png)
 *Logs and resource inspection view.*
 
-</details>
-
 ### Application UI / Canary examples
-
-<details>
-<summary><strong>App UI & canary screenshots — click to expand</strong></summary>
 
 ![Stark v1 app UI](pictures/go-app.png)
 *Stark (v1) live UI snapshot.*
@@ -245,12 +283,7 @@ Below are screenshots included in the `pictures/` directory with short descripti
 ![Canary test — v2 response](pictures/canary-test-go-app-v2.png)
 *Example response served by v2 (Doom) during a canary test.*
 
-</details>
-
 ### Istio / Kiali (observability & traffic)
-
-<details>
-<summary><strong>Istio & Kiali screenshots — click to expand</strong></summary>
 
 ![Istio install / control plane](pictures/istio-install.png)
 *Istio install / control-plane snapshot.*
@@ -279,11 +312,16 @@ Below are screenshots included in the `pictures/` directory with short descripti
 ![Kiali — mesh topology (alt)](pictures/kiali-mesh-2.png)
 *Mesh topology with metrics.*
 
-</details>
+![Kiali — mesh topology (extra)](pictures/kiali-mesh-3.png)
+*Additional mesh snapshot (kiali-mesh-3.png).* 
 
 ### Misc / Misc screenshots
 
-- `pictures/Screenshot 2025-11-29 042602.png` (1917×1079) — Misc local screenshot (timestamped). Use for additional context or documentation.
+![Flow diagram / overview](pictures/flow_diagram.png)
+*flow_diagram.png — high-level pipeline illustration.*
+
+![Misc local screenshot](pictures/Screenshot 2025-11-29 042602.png)
+*Screenshot 2025-11-29 042602.png — misc timestamped capture.*
 
 ---
 

@@ -1,0 +1,112 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Architecture diagram (SVG)
+  - Visual, self-contained diagram illustrating the CI/CD + GitOps flow.
+  - Uses emoji-friendly icon glyphs to keep everything license-safe and inline.
+  - File: docs/arch-diagram.svg
+-->
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="700" viewBox="0 0 1200 700">
+  <style>
+    .bg { fill: #0f1724; }
+    .title { fill: #ffffff; font-family: Inter, system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue'; font-size: 20px; font-weight: 700; }
+    .subtitle { fill: #cbd5e1; font-size: 12px; }
+    .box { fill: #0b1220; stroke: #1e293b; stroke-width: 2; rx: 14; }
+    .icon { font-size: 44px; }
+    .label { fill: #e6eef6; font-family: Inter, system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue'; font-size: 14px; font-weight: 600; }
+    .note { fill: #9fb2c7; font-size: 12px; }
+    .arrow { stroke: #94a3b8; stroke-width: 2.5; fill: none; marker-end: url(#arrowhead); }
+    .component { fill: #0f1724; stroke: #334155; stroke-width: 2; rx: 12; }
+    .panel { fill: rgba(99,102,241,0.07); stroke: rgba(99,102,241,0.12); stroke-width: 1; rx: 8; }
+  </style>
+
+  <!-- arrow head -->
+  <defs>
+    <marker id="arrowhead" markerWidth="10" markerHeight="7" refX="10" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#94a3b8" />
+    </marker>
+  </defs>
+
+  <!-- background -->
+  <rect width="1200" height="700" fill="#071024" />
+
+  <!-- header -->
+  <text x="36" y="44" class="title">Architecture — Stark Industries Cloud-Native Platform</text>
+  <text x="36" y="66" class="subtitle">CI → Container Registry → GitOps → Cluster → Service Mesh — compact visual reference</text>
+
+  <!-- Developer -->
+  <g transform="translate(40,120)">
+    <rect class="box" width="220" height="110" />
+    <text x="18" y="46" class="icon">👩‍💻</text>
+    <text x="82" y="48" class="label">Developer</text>
+    <text x="82" y="68" class="note">commits code / pushes & PRs</text>
+  </g>
+
+  <!-- GitHub Actions -->
+  <g transform="translate(340,80)">
+    <rect class="box" width="220" height="150" />
+    <image x="18" y="18" width="56" height="56" href="https://cdn.simpleicons.org/githubactions/06b6d4" />
+    <text x="92" y="48" class="label">GitHub Actions</text>
+    <text x="92" y="68" class="note">CI: build → test → image</text>
+    <text x="92" y="88" class="note">and update manifests/values</text>
+  </g>
+
+  <!-- Docker / ECR -->
+  <g transform="translate(680,80)">
+    <rect class="box" width="220" height="150" />
+    <image x="18" y="18" width="56" height="56" href="https://cdn.simpleicons.org/docker/2496ed" />
+    <text x="92" y="48" class="label">ECR / Container Registry</text>
+    <text x="92" y="68" class="note">stores built images (tags/digests)</text>
+  </g>
+
+  <!-- ArgoCD -->
+  <g transform="translate(340,260)">
+    <rect class="box" width="220" height="150" />
+    <image x="18" y="18" width="56" height="56" href="https://cdn.simpleicons.org/argo/2dd4bf" />
+    <text x="92" y="48" class="label">ArgoCD (GitOps)</text>
+    <text x="92" y="68" class="note">watches git & syncs to cluster</text>
+    <text x="92" y="88" class="note">applies Helm / k8s manifests</text>
+  </g>
+
+  <!-- Helm -->
+  <g transform="translate(40,260)">
+    <rect class="box" width="220" height="110" />
+    <image x="18" y="18" width="56" height="56" href="https://cdn.simpleicons.org/helm/0f172a" />
+    <text x="86" y="58" class="label">Helm chart</text>
+    <text x="86" y="78" class="note">chart: helm/stark-industries-go</text>
+  </g>
+
+  <!-- EKS Cluster -->
+  <g transform="translate(680,260)">
+    <rect class="box" width="420" height="260" />
+    <image x="18" y="20" width="56" height="48" href="https://cdn.simpleicons.org/aws/ff9900" />
+    <text x="84" y="52" class="label">AWS EKS Cluster</text>
+    <text x="84" y="74" class="note">Deployments (v1 / v2) • Service • Ingress • Istio</text>
+
+    <!-- subcomponents inside the cluster -->
+    <rect x="24" y="96" width="165" height="132" class="component"/>
+    <text x="60" y="128" class="label">k8s Deployments</text>
+    <text x="60" y="146" class="note">go-app (v1), go-app-v2</text>
+
+    <rect x="214" y="96" width="165" height="132" class="component"/>
+    <text x="250" y="128" class="label">Istio Control</text>
+    <text x="250" y="146" class="note">Gateway • VirtualService • DestinationRule</text>
+
+    <rect x="404" y="96" width="165" height="132" class="component"/>
+    <text x="440" y="128" class="label">Kiali / Metrics</text>
+    <text x="440" y="146" class="note">Observability / traffic graphs</text>
+  </g>
+
+  <!-- Arrows / flow -->
+  <path d="M260 170 L340 160" class="arrow" />
+  <path d="M560 140 L680 140" class="arrow" />
+  <path d="M450 210 L450 260" class="arrow" />
+  <path d="M560 320 L680 320" class="arrow" />
+
+  <!-- Visual connectors to cluster/helm etc -->
+  <path d="M120 230 L120 260" class="arrow" />
+  <path d="M120 280 L120 300" class="arrow" />
+
+  <!-- Footer notes -->
+  <text x="36" y="660" class="subtitle">Diagram: developer → GitHub Actions (CI) → ECR (image) → ArgoCD (GitOps) → EKS (Helm/k8s + Istio + Kiali)</text>
+  <text x="36" y="680" class="subtitle">Created: automated SVG — icons are emoji-based for license-safety. If you prefer official brand logos embedded (SVG/PNG), I can add them with your permission.</text>
+</svg>
