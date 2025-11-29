@@ -57,52 +57,8 @@ This repository demonstrates:
 The sample setup showcases a canary deployment where traffic can be split between v1 and v2 using Istio.
 
 ---
-
-## 🗺️ Architecture diagram
-
-High-level architecture (CI → image registry → GitOps → cluster). Click to expand the diagram below.
-
-<details>
-<summary>Open architecture diagram</summary>
-
-![Architecture diagram](docs/arch-diagram.svg)
-
-</details>
-
-### Mermaid (editable) diagram
-
-Below is an editable Mermaid flowchart of the architecture — useful if you want to modify the flow and re-render locally.
-
-```mermaid
-flowchart LR
-  DEV["👩‍💻 Developer: push / PR"] --> GH["⚙️ GitHub Actions: build & test"]
-  GH --> REG["📦 Container registry: ECR"]
-  GH --> GIT["📂 Git repo: update manifests/values"]
-  GIT --> ARGO["🔁 ArgoCD: GitOps sync -> cluster"]
-  ARGO --> CLUSTER["☸️ EKS Cluster: Deployments, Istio, Kiali"]
-  CLUSTER --> APPS["🧩 Apps (v1 / v2)"]
-```
-
-Note: If you'd like a PNG exported and added to the repo I can generate one — currently this environment doesn't have a native rasterizer installed (Cairo/ImageMagick). I included instructions below showing how to generate a PNG from the SVG locally.
-
-#### Export SVG -> PNG (local)
-
-If you have Python + cairosvg installed locally:
-
-```powershell
-python -m pip install cairosvg
-python -c "from cairosvg import svg2png; svg2png(url='docs/arch-diagram.svg', write_to='docs/arch-diagram.png', output_width=2400)"
-```
-
-Or with ImageMagick (if available):
-
-```powershell
-magick convert docs/arch-diagram.svg docs/arch-diagram.png
-```
-
----
-
 ## What's included
+
 
 - `stark-industries/go-app/` — v1 Stark web app
 - `stark-industries/go-app-v2/` — v2 Doom web app
@@ -223,20 +179,9 @@ http:
         subset: v2
       weight: 50
 ```
-## CI / GitOps flow (overview)
-
-High level flow:
-
-## Project structure
-
-## Troubleshooting & editor linter notes
-- If VS Code marks `.helmignore` or chart `templates/*.yaml` as YAML errors, the workspace includes `.vscode/settings.json` mapping these files to `plaintext` (and `.gitattributes` ensures LF endings). This prevents YAML parsers from producing false positives.
-
-- If Helm cannot find images, check the values in `stark-industries/helm/stark-industries-go/values.yaml` and update to the correct registry and tag.
 
  
 ---
-
 ## Screenshots & analysis
 
 Below are screenshots included in the `pictures/` directory with short descriptions so you (and others) can quickly understand what each image shows. All images are stored at `pictures/<filename>` and are ready to view in this repo.
